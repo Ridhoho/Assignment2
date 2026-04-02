@@ -1,32 +1,21 @@
-require("dotenv").config()
-const express = require("express")
-const app = express()
-const routes = require("./routes")
-const sequelize = require("./models")
+require("dotenv").config();
 
-app.use(express.json())
-app.use("/", routes)
+const app = require("./app");
+const sequelize = require("./models");
 
-app.use((err, req, res, next) => {
-    const status = err.status || 500
-    res.status(status).json({
-        success: false,
-        message: err.message || "Internal Server Error"
-    })
-})
+const startServer = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connected");
 
-const startServer = async() => {
-    try{
-        await sequelize.authenticate()
-        console.log("Database Connected");
+    const port = Number(process.env.PORT) || 3000;
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  } catch (err) {
+    console.error("Database connection failed:", err);
+    process.exit(1);
+  }
+};
 
-        const PORT = process.env.PORT || 3000
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        })
-    } catch (err) {
-        console.error("Database connection failed:", err)
-    }
-}
-
-startServer()
+startServer();
