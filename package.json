@@ -17,7 +17,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "migrate": "sequelize db:migrate",
+    "migrate": "sequelize-cli db:migrate --env production",
+    "migrate:local": "sequelize-cli db:migrate --env development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

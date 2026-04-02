@@ -1,8 +1,18 @@
 const { Sequelize } = require("sequelize");
-const config = require("../config/config.json");
+const config = require("../config/config");
 
 const env = process.env.NODE_ENV || "development";
 const dbConfig = config[env] || config.development;
+
+const envOrFallback = (...keys) => {
+  for (const key of keys) {
+    if (process.env[key]) {
+      return process.env[key];
+    }
+  }
+
+  return undefined;
+};
 
 const connectionOptions = {
   dialect: "postgres",
@@ -20,13 +30,13 @@ if (process.env.DATABASE_URL) {
   });
 } else {
   sequelize = new Sequelize(
-    process.env.DB_NAME || dbConfig.database,
-    process.env.DB_USER || dbConfig.username,
-    process.env.DB_PASS || dbConfig.password,
+    envOrFallback("DB_NAME", "PGDATABASE", "POSTGRES_DB") || dbConfig.database,
+    envOrFallback("DB_USER", "PGUSER", "POSTGRES_USER") || dbConfig.username,
+    envOrFallback("DB_PASS", "PGPASSWORD", "POSTGRES_PASSWORD") || dbConfig.password,
     {
       ...connectionOptions,
-      host: process.env.DB_HOST || dbConfig.host,
-      port: Number(process.env.DB_PORT || dbConfig.port || 5432),
+      host: envOrFallback("DB_HOST", "PGHOST", "POSTGRES_HOST") || dbConfig.host,
+      port: Number(envOrFallback("DB_PORT", "PGPORT", "POSTGRES_PORT") || dbConfig.port || 5432),
     },
   );
 }
