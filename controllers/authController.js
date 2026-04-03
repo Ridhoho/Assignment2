@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Movie = require("../models/Movie");
+const Bookmark = require("../models/Bookmark")
 const { Op } = require("sequelize");
 
 const signToken = (user) => {
@@ -86,4 +88,42 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { login, register };
+const bookmark = async (req, res, next) => {
+  try {
+    const movieId = Number(req.params.id)
+    const userId = req.user.id
+
+    const movie = await Movie.findByPk(movieId)
+    if(!movie)
+      return res.status(404).json({
+    success: false,
+    message: "movie tidak ditemukan"
+  })
+
+  const existingBookmark = await Bookmark.findOne({
+    where: { userId, movieId}
+  })
+  if(existingBookmark) {
+    return res.status(400).json({
+      success: false,
+      message: "movie sudah di-bookmark"
+    })
+  }
+
+  const newBookmark = await Bookmark.create({ userId, movieId })
+
+  return res.status(200).json({
+    success: true,
+    message: "Berhasil bookmark",
+    id: newBookmark.id,
+    userId: newBookmark.userId,
+    movieId: newBookmark.movieId,
+    movieTitle: movie.title
+  })
+      
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { login, register, bookmark };
